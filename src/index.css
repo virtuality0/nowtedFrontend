@@ -4,8 +4,16 @@ html,
 body {
   height: 100vh;
   width: 100vw;
+  background-color: #151515;
 }
 
 #root {
   height: 100%;
+}
+
+@theme {
+  --color-black-700: #151515;
+  --color-gray-700: #1c1c1c;
+  --color-blue-700: #1d24ca;
+  --color-white-700: #e5e5e5;
 }
