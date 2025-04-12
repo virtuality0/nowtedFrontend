@@ -2,9 +2,37 @@ import signupBackground from "../assets/images/signupBackground.jpg";
 import logo from "../assets/icons/Logo.svg";
 import { User } from "../components/ui/icons/User";
 import { Button } from "./ui/Button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useFormik } from "formik";
+import useAxiosApi from "../utils/axiosClient";
 
 export const Signin = () => {
+  const navigate = useNavigate();
+  const axiosApi = useAxiosApi();
+  const initialValue = {
+    password: "",
+    username: "",
+  };
+
+  const { values, handleBlur, handleChange, handleSubmit } = useFormik({
+    initialValues: initialValue,
+    onSubmit: async (values) => {
+      try {
+        await axiosApi.post<{ msg: string; token: string }>(
+          "user/signin",
+          {
+            username: values.username,
+            password: values.password,
+          },
+          {
+            withCredentials: true,
+          }
+        );
+
+        navigate("/");
+      } catch (err) {}
+    },
+  });
   return (
     <div className="flex justify-center items-center size-full">
       <div className="w-[55%] rounded-lg flex bg-white-700 px-4 py-4">
@@ -24,7 +52,7 @@ export const Signin = () => {
             <h1 className="font-thin">Welcome back, signin to your account</h1>
             <form
               className="flex flex-col gap-y-2 border-2 border-black-700 shadow-black-700 shadow-sm rounded-md px-4 py-4"
-              action=""
+              onSubmit={handleSubmit}
             >
               <div className="flex items-center justify-between border-1 border-black-700 text-black-700 px-4 py-2 rounded-md ">
                 <label htmlFor="username">Username</label>
@@ -33,6 +61,9 @@ export const Signin = () => {
                   type="text"
                   name="username"
                   placeholder="Username"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.username}
                 />
               </div>
               <div className="flex items-center justify-between border-1 border-black-700 text-black-700 px-4 py-2 rounded-md ">
@@ -42,6 +73,9 @@ export const Signin = () => {
                   type="password"
                   name="password"
                   placeholder="Password"
+                  value={values.password}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
                 />
               </div>
               <div className="flex flex-col gap-y-2">

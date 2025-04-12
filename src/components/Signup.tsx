@@ -2,11 +2,14 @@ import signupBackground from "../assets/images/signupBackground.jpg";
 import logo from "../assets/icons/Logo.svg";
 import { User } from "../components/ui/icons/User";
 import { Button } from "./ui/Button";
-import { Link } from "react-router-dom";
-import { ErrorMessage, useFormik } from "formik";
+import { Link, useNavigate } from "react-router-dom";
+import { useFormik } from "formik";
 import { signUpSchema } from "../schemas/signUpSchema";
+import useAxiosApi from "../utils/axiosClient";
+import { toast } from "react-toastify";
 
 export const Signup = () => {
+  const axiosApi = useAxiosApi();
   const initialValue = {
     email: "",
     password: "",
@@ -14,14 +17,30 @@ export const Signup = () => {
     username: "",
   };
 
+  const navigate = useNavigate();
   const { values, touched, errors, handleBlur, handleChange, handleSubmit } =
     useFormik({
       initialValues: initialValue,
       validationSchema: signUpSchema,
-      onSubmit: (values) => {
-        console.log(values);
+      onSubmit: async (values) => {
+        try {
+          await axiosApi.post(
+            "user/signup",
+            {
+              username: values.username,
+              email: values.email,
+              password: values.password,
+            },
+            {
+              withCredentials: true,
+            }
+          );
+          toast("Signed up successfully.");
+          navigate("/signin");
+        } catch (err) {}
       },
     });
+
   return (
     <div className="flex justify-center items-center size-full">
       <div className="w-[60%] rounded-lg flex bg-white-700 px-4 py-4">
@@ -111,12 +130,11 @@ export const Signup = () => {
                     onBlur={handleBlur}
                   />
                 </div>
-                <ErrorMessage name="confirmpassword" />
-                {/* {errors.confirmpassword && touched.confirmpassword ? (
+                {errors.confirmpassword && touched.confirmpassword ? (
                   <p className="text-red-500 font-medium">
                     {errors.confirmpassword}
                   </p>
-                ) : null} */}
+                ) : null}
               </div>
               <div className="flex flex-col gap-y-2">
                 <Button
