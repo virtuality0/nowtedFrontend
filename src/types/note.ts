@@ -1,3 +1,5 @@
+import { folder } from "./folder";
+
 export type note = {
   id: string;
   createdAt: string;
@@ -6,4 +8,5 @@ export type note = {
   content: string;
   folderId: string;
   preview?: string;
+  folder?: folder;
 };

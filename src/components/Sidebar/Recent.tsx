@@ -2,17 +2,35 @@ import { useQuery } from "@tanstack/react-query";
 import { note } from "../../types/note";
 import useAxiosApi from "../../utils/axiosClient";
 import noteIcon from "../../assets/icons/Page-Icon.svg";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
-export const Recent = () => {
+interface RecentComponentProps {
+  addNoteClicked: boolean;
+  noteUpdated: boolean;
+}
+
+export const Recent = ({
+  addNoteClicked,
+  noteUpdated,
+}: RecentComponentProps) => {
   const axiosApi = useAxiosApi();
+  const navigate = useNavigate();
   const fetchRecentNotes = () => {
     return axiosApi.get<{ data: note[]; total: number }>("/note/recent");
   };
 
-  const { data } = useQuery({
+  const { data, refetch } = useQuery({
     queryKey: ["recent-notes"],
     queryFn: fetchRecentNotes,
+    refetchOnWindowFocus: false,
   });
+
+  useEffect(() => {
+    if (addNoteClicked || noteUpdated) {
+      refetch();
+    }
+  }, [addNoteClicked, noteUpdated]);
 
   return (
     <div className="flex flex-col gap-y-4 px-2 py-1">
@@ -21,7 +39,10 @@ export const Recent = () => {
         {data?.data.data.slice(0, 3).map((item) => {
           return (
             <div
-              className="flex justify-between gap-x-4 items-center cursor-pointer basis-[33%] overflow-hidden"
+              onClick={() => {
+                navigate(`/folder/${item.folderId}/note/${item.id}`);
+              }}
+              className="flex justify-between gap-x-4 items-center cursor-pointer overflow-hidden"
               key={item.id}
             >
               <img src={noteIcon} alt="note icon" />

@@ -22,6 +22,10 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/signin" element={<Signin />} />
           <Route path="/folder/:folderId" element={<Dashboard />} />
+          <Route
+            path="/folder/:folderId/note/:noteId"
+            element={<Dashboard />}
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

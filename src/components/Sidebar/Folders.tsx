@@ -2,19 +2,19 @@ import { useQuery } from "@tanstack/react-query";
 import { folder } from "../../types/folder";
 import addFolder from "../../assets/icons/Add-Folder-Icon.svg";
 import useAxiosApi from "../../utils/axiosClient";
-import deleteFolder from "../../assets/icons/Trash-Icon.svg";
-import folderIcon from "../../assets/icons/Folder-Icon.svg";
-import { useNavigate } from "react-router-dom";
+import { Folder } from "./Folder";
 
 export const Folders = () => {
-  const navigate = useNavigate();
   const axiosApi = useAxiosApi();
+
   const fetchFolders = () => {
     return axiosApi.get<{ data: folder[]; total: number }>("/folder");
   };
+
   const { data, refetch } = useQuery({
     queryKey: ["folders"],
     queryFn: fetchFolders,
+    refetchOnWindowFocus: false,
   });
 
   const addFolderClickedHandler = async () => {
@@ -22,15 +22,6 @@ export const Folders = () => {
       name: "New Folder",
     });
     refetch();
-  };
-
-  const deleteFolderClickedHandler = async (folderId: string) => {
-    await axiosApi.delete(`/folder/${folderId}`);
-    refetch();
-  };
-
-  const onClickFolderHandler = (folderId: string) => {
-    navigate(`/folder/${folderId}`);
   };
 
   return (
@@ -50,27 +41,12 @@ export const Folders = () => {
       >
         {data?.data.data.map((item) => {
           return (
-            <div
+            <Folder
               key={item.id}
-              className="flex justify-between items-center shrink-0 h-[2rem] cursor-pointer"
-            >
-              <div
-                onClick={() => {
-                  onClickFolderHandler(item.id);
-                }}
-                className="flex gap-x-4 items-center"
-              >
-                <img src={folderIcon} alt="folder icon" />
-                <span className="text-white/60">{item.name}</span>
-              </div>
-              <img
-                onClick={() => {
-                  deleteFolderClickedHandler(item.id);
-                }}
-                src={deleteFolder}
-                alt="Delete folder"
-              />
-            </div>
+              folderId={item.id}
+              name={item.name}
+              refetch={refetch}
+            />
           );
         })}
       </div>

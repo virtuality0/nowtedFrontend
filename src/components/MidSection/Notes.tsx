@@ -1,9 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import useAxiosApi from "../utils/axiosClient";
-import { note } from "../types/note";
+import useAxiosApi from "../../utils/axiosClient";
+import { note } from "../../types/note";
+import { useEffect } from "react";
+import { NoteDiv } from "./NoteDiv";
 
-export const Notes = () => {
+interface NotesComponentProps {
+  addNoteClicked: boolean;
+  noteUpdated: boolean;
+}
+
+export const Notes = ({ addNoteClicked, noteUpdated }: NotesComponentProps) => {
   const params = useParams();
   const folderId = params.folderId;
   const axiosApi = useAxiosApi();
@@ -16,10 +23,18 @@ export const Notes = () => {
     }>(folderId ? `/note?folderId=${folderId}` : `/note/recent`);
   };
 
-  const { data } = useQuery({
+  const { data, refetch } = useQuery({
     queryKey: ["notes", folderId],
     queryFn: getNotesByFolderId,
+    refetchOnWindowFocus: false,
   });
+
+  useEffect(() => {
+    if (addNoteClicked || noteUpdated) {
+      refetch();
+    }
+  }, [addNoteClicked, noteUpdated]);
+
   return (
     <div className="bg-gray-700 w-[20%] h-full px-4 py-4">
       <h1 className="text-white text-xl font-medium px-4 py-2">
@@ -28,13 +43,13 @@ export const Notes = () => {
       <div className="flex flex-col px-2 py-2 gap-y-4">
         {data?.data.data.map((item) => {
           return (
-            <div className="flex flex-col gap-y-2 bg-gray-600 px-2 py-4 rounded-md">
-              <h1 className="text-white font-medium">{item.title}</h1>
-              <span className="text-white/60">{item.preview}</span>
-              <span className="text-white/60 text-sm">
-                {new Date(item.createdAt).toLocaleDateString()}
-              </span>
-            </div>
+            <NoteDiv
+              noteId={item.id}
+              title={item.title}
+              preview={item.preview ?? ""}
+              createdAt={item.createdAt}
+              folderId={item.folderId ?? ""}
+            />
           );
         })}
       </div>
