@@ -4,21 +4,19 @@ import useAxiosApi from "../../utils/axiosClient";
 import noteIcon from "../../assets/icons/Page-Icon.svg";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useUpdateNote } from "../../store/store";
 
 interface RecentComponentProps {
   addNoteClicked: boolean;
-  noteUpdated: boolean;
 }
 
-export const Recent = ({
-  addNoteClicked,
-  noteUpdated,
-}: RecentComponentProps) => {
+export const Recent = ({ addNoteClicked }: RecentComponentProps) => {
   const axiosApi = useAxiosApi();
   const navigate = useNavigate();
   const fetchRecentNotes = () => {
     return axiosApi.get<{ data: note[]; total: number }>("/note/recent");
   };
+  const isNoteUpdated = useUpdateNote((state) => state.updateNote);
 
   const { data, refetch } = useQuery({
     queryKey: ["recent-notes"],
@@ -27,10 +25,10 @@ export const Recent = ({
   });
 
   useEffect(() => {
-    if (addNoteClicked || noteUpdated) {
+    if (addNoteClicked || isNoteUpdated) {
       refetch();
     }
-  }, [addNoteClicked, noteUpdated]);
+  }, [addNoteClicked, isNoteUpdated]);
 
   return (
     <div className="flex flex-col gap-y-4 px-2 py-1">

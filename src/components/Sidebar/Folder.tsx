@@ -1,7 +1,7 @@
 import deleteFolder from "../../assets/icons/Trash-Icon.svg";
 import folderIcon from "../../assets/icons/Folder-Icon.svg";
 import activeFolderIcon from "../../assets/icons/Open-Folder-Icon.svg";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { folder } from "../../types/folder";
 import { QueryObserverResult } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
@@ -22,13 +22,17 @@ interface FolderComponentProps {
       Error
     >
   >;
+  openedFolder: string;
 }
 
-export const Folder = ({ refetch, folderId, name }: FolderComponentProps) => {
+export const Folder = ({
+  refetch,
+  folderId,
+  name,
+  openedFolder,
+}: FolderComponentProps) => {
   const axiosApi = useAxiosApi();
   const navigate = useNavigate();
-  const params = useParams();
-  const openedFolderId = params.folderId;
 
   const deleteFolderClickedHandler = async (folderId: string) => {
     await axiosApi.delete(`/folder/${folderId}`);
@@ -47,12 +51,12 @@ export const Folder = ({ refetch, folderId, name }: FolderComponentProps) => {
         className="flex gap-x-4 items-center"
       >
         <img
-          src={openedFolderId === folderId ? activeFolderIcon : folderIcon}
+          src={openedFolder === folderId ? activeFolderIcon : folderIcon}
           alt="folder icon"
         />
         <span
           className={`${
-            openedFolderId === folderId ? "text-white" : "text-white/60"
+            openedFolder === folderId ? "text-white" : "text-white/60"
           }`}
         >
           {name}

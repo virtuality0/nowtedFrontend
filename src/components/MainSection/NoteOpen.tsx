@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
 import { note } from "../../types/note";
-import noteOptions from "../../assets/icons/Notes-Dropdown.svg";
 import calendarIcon from "../../assets/icons/Calender-Icon.svg";
 import useAxiosApi from "../../utils/axiosClient";
 import { useDebouce } from "../../hooks/useDebounce";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
+import { NoteOptions } from "./NoteOptions";
+import { useUpdateNote } from "../../store/store";
 
 interface NoteOpenComponetProps {
-  setNoteUpdated: React.Dispatch<React.SetStateAction<boolean>>;
+  setNoteState: React.Dispatch<
+    React.SetStateAction<"initial" | "opened" | "deleted">
+  >;
 }
 
-export const NoteOpen = ({ setNoteUpdated }: NoteOpenComponetProps) => {
+export const NoteOpen = ({ setNoteState }: NoteOpenComponetProps) => {
   const [noteData, setNoteData] = useState<{
     title: string;
     content: string;
@@ -26,13 +29,23 @@ export const NoteOpen = ({ setNoteUpdated }: NoteOpenComponetProps) => {
   const axiosApi = useAxiosApi();
   const params = useParams();
   const noteId = params.noteId;
+  const folderId = params.folderId;
+  const setUpdateNote = useUpdateNote((state) => state.setUpdateNote);
 
   const fetchNote = async () => {
-    const response = await axiosApi.get<{ data: note }>(`/note/${noteId}`);
-    return response.data;
+    try {
+      if (folderId === "Trash") {
+        setNoteState("deleted");
+        return;
+      }
+      const response = await axiosApi.get<{ data: note }>(`/note/${noteId}`);
+      return response.data;
+    } catch (err) {
+      setNoteState("initial");
+    }
   };
 
-  const { data, refetch, isSuccess } = useQuery({
+  const { data, isSuccess } = useQuery({
     queryKey: ["note", noteId],
     queryFn: fetchNote,
     refetchOnWindowFocus: false,
@@ -55,16 +68,17 @@ export const NoteOpen = ({ setNoteUpdated }: NoteOpenComponetProps) => {
 
   // set the initial data of debounced values only after the intial fetch
   const noteContentDebouncedValue = useDebouce(noteData.content, 700);
-  const noteTitleDebouncedValue = useDebouce(noteData.title, 500);
+  const noteTitleDebouncedValue = useDebouce(noteData.title, 700);
 
-  const udpateNote = async () => {
+  const udpateNote = async (deleteNote: boolean) => {
+    setUpdateNote(false);
     await axiosApi.patch<{ msg: string }>(`/note/${noteId}`, {
       title: noteTitleDebouncedValue,
       content: noteContentDebouncedValue,
       modifiedAt: new Date().toISOString(),
+      isDeleted: deleteNote,
     });
-    setNoteUpdated(true);
-    refetch();
+    setUpdateNote(true);
   };
 
   const onBlurHandler = () => {
@@ -76,17 +90,14 @@ export const NoteOpen = ({ setNoteUpdated }: NoteOpenComponetProps) => {
       (!isSyncing && noteContentDebouncedValue !== data?.data.content) ||
       noteTitleDebouncedValue !== data?.data.title
     ) {
-      udpateNote();
+      udpateNote(false);
     }
-    return () => {
-      setNoteUpdated(false);
-    };
   }, [noteContentDebouncedValue, noteTitleDebouncedValue]);
 
   return (
     <div className="flex flex-col grow">
       <div>
-        <div className="flex justify-between px-2 py-2">
+        <div className="flex items-center px-2 py-2">
           {isEditing ? (
             <input
               className="text-white/60 border-white/60 border-1 rounded-md"
@@ -114,7 +125,11 @@ export const NoteOpen = ({ setNoteUpdated }: NoteOpenComponetProps) => {
               {noteData.title}
             </span>
           )}
-          <img src={noteOptions} alt="note options" />
+          <NoteOptions
+            setNoteState={setNoteState}
+            updateNote={udpateNote}
+            folderId={folderId ?? ""}
+          />
         </div>
         <div className="flex gap-x-2 px-2 py-2">
           <img src={calendarIcon} alt="calendar icon" />

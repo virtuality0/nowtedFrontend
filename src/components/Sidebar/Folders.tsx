@@ -4,7 +4,11 @@ import addFolder from "../../assets/icons/Add-Folder-Icon.svg";
 import useAxiosApi from "../../utils/axiosClient";
 import { Folder } from "./Folder";
 
-export const Folders = () => {
+interface FoldersComponentProps {
+  openedFolder: string;
+}
+
+export const Folders = ({ openedFolder }: FoldersComponentProps) => {
   const axiosApi = useAxiosApi();
 
   const fetchFolders = () => {
@@ -46,6 +50,7 @@ export const Folders = () => {
               folderId={item.id}
               name={item.name}
               refetch={refetch}
+              openedFolder={openedFolder}
             />
           );
         })}

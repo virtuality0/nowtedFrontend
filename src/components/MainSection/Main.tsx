@@ -3,20 +3,20 @@ import useAxiosApi from "../../utils/axiosClient";
 import { Button } from "../ui/Button";
 import { toast } from "react-toastify";
 import { NoteOpen } from "./NoteOpen";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NoteInitial } from "./NoteInitial";
-interface MainComponentProps {
-  setNoteUpdated: React.Dispatch<React.SetStateAction<boolean>>;
-}
+import { RestoreNote } from "./RestoreNote";
 
-export const Main = ({ setNoteUpdated }: MainComponentProps) => {
+export const Main = () => {
   const navigate = useNavigate();
   const axiosApi = useAxiosApi();
   const params = useParams();
   const noteId = params.noteId;
+  const folderId = params.folderId;
   const [noteState, setNoteState] = useState<"initial" | "opened" | "deleted">(
     "initial"
   );
+  const noteIdRef = useRef(noteId);
 
   const signOutHandler = () => {
     axiosApi
@@ -30,8 +30,9 @@ export const Main = ({ setNoteUpdated }: MainComponentProps) => {
   };
 
   useEffect(() => {
-    if (noteId && noteState !== "opened") {
+    if (noteId) {
       setNoteState("opened");
+      noteIdRef.current = noteId;
     }
   }, [noteId]);
 
@@ -46,7 +47,13 @@ export const Main = ({ setNoteUpdated }: MainComponentProps) => {
         />
       </div>
       {noteState === "initial" && <NoteInitial />}
-      {noteState === "opened" && <NoteOpen setNoteUpdated={setNoteUpdated} />}
+      {noteState === "opened" && <NoteOpen setNoteState={setNoteState} />}
+      {noteState === "deleted" && (
+        <RestoreNote
+          noteId={noteIdRef.current ?? ""}
+          folderId={folderId ?? ""}
+        />
+      )}
     </div>
   );
 };

@@ -5,16 +5,14 @@ import { Sidebar } from "./Sidebar/Sidebar";
 
 export const Dashboard = () => {
   const [addNoteClicked, setAddNoteClicked] = useState<boolean>(false);
-  const [noteUpdated, setNoteUpdated] = useState<boolean>(false);
   return (
     <div className="flex h-full">
       <Sidebar
         addNoteClicked={addNoteClicked}
         setAddNoteClicked={setAddNoteClicked}
-        noteUpdated={noteUpdated}
       />
-      <Notes addNoteClicked={addNoteClicked} noteUpdated={noteUpdated} />
-      <Main setNoteUpdated={setNoteUpdated} />
+      <Notes addNoteClicked={addNoteClicked} />
+      <Main />
     </div>
   );
 };

@@ -6,21 +6,21 @@ import { Folders } from "./Folders";
 import { Recent } from "./Recent";
 import { toast } from "react-toastify";
 import useAxiosApi from "../../utils/axiosClient";
+import { ExtraFolders } from "./ExtraFolders";
 
 interface SidebarComponentProps {
   setAddNoteClicked: React.Dispatch<React.SetStateAction<boolean>>;
   addNoteClicked: boolean;
-  noteUpdated: boolean;
 }
 
 export const Sidebar = ({
   setAddNoteClicked,
   addNoteClicked,
-  noteUpdated,
 }: SidebarComponentProps) => {
   const params = useParams();
   const folderId = params.folderId ?? "";
   const axiosApi = useAxiosApi();
+  const openedFolder = folderId;
 
   const addNoteClickedHandler = async () => {
     if (!folderId) {
@@ -52,8 +52,9 @@ export const Sidebar = ({
           endIcon={addNote}
         />
       </div>
-      <Recent addNoteClicked={addNoteClicked} noteUpdated={noteUpdated} />
-      <Folders />
+      <Recent addNoteClicked={addNoteClicked} />
+      <Folders openedFolder={openedFolder} />
+      <ExtraFolders openedFolder={openedFolder} />
     </div>
   );
 };

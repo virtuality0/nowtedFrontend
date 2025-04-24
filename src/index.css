@@ -5,6 +5,7 @@ body {
   height: 100vh;
   width: 100vw;
   background-color: #151515;
+  font-family: monospace;
 }
 
 #root {
