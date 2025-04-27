@@ -3,6 +3,8 @@ import { folder } from "../../types/folder";
 import addFolder from "../../assets/icons/Add-Folder-Icon.svg";
 import useAxiosApi from "../../utils/axiosClient";
 import { Folder } from "./Folder";
+import { useEffect } from "react";
+import { useUpdateFolder } from "../../store/store";
 
 interface FoldersComponentProps {
   openedFolder: string;
@@ -10,6 +12,7 @@ interface FoldersComponentProps {
 
 export const Folders = ({ openedFolder }: FoldersComponentProps) => {
   const axiosApi = useAxiosApi();
+  const updateFolder = useUpdateFolder((state) => state.updateFolder);
 
   const fetchFolders = () => {
     return axiosApi.get<{ data: folder[]; total: number }>("/folder");
@@ -27,6 +30,12 @@ export const Folders = ({ openedFolder }: FoldersComponentProps) => {
     });
     refetch();
   };
+
+  useEffect(() => {
+    if (updateFolder) {
+      refetch();
+    }
+  }, [updateFolder]);
 
   return (
     <div className="flex flex-col gap-y-4 px-2 py-1">
