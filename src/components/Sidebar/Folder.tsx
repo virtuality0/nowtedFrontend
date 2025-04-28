@@ -57,7 +57,7 @@ export const Folder = ({
         <span
           className={`${
             openedFolder === folderId ? "text-white" : "text-white/60"
-          }`}
+          } truncate`}
         >
           {name}
         </span>

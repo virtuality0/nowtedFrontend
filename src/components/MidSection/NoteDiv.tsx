@@ -22,9 +22,9 @@ export const NoteDiv = ({
         navigate(`/folder/${folderId}/note/${noteId}`);
       }}
       key={noteId}
-      className="flex flex-col gap-y-2 bg-gray-600 px-2 py-4 rounded-md cursor-pointer h-30"
+      className="flex flex-col gap-y-2 bg-gray-600 px-2 py-4 rounded-md cursor-pointer h-[7rem] shrink-0"
     >
-      <h1 className="text-white font-medium">{title}</h1>
+      <h1 className="text-white font-medium truncate">{title}</h1>
       <span className="text-white/60">{preview}</span>
       <span className="text-white/60 text-sm">
         {new Date(createdAt).toLocaleDateString()}

@@ -2,10 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import useAxiosApi from "../../utils/axiosClient";
 import { note } from "../../types/note";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NoteDiv } from "./NoteDiv";
 import { useUpdateFolder, useUpdateNote } from "../../store/store";
 import { Edit } from "../ui/icons/Edit";
+import { ChevronLeft } from "../ui/icons/ChevronLeft";
+import { ChevronRight } from "../ui/icons/ChevronRight";
 
 interface NotesComponentProps {
   addNoteClicked: boolean;
@@ -19,11 +21,21 @@ export const Notes = ({ addNoteClicked }: NotesComponentProps) => {
   const [editFolderClicked, setEditFolderClicked] = useState(false);
   const [folderTitle, setFolderTitle] = useState("");
   const setUpdateFolder = useUpdateFolder((state) => state.setUpdateFolder);
+  const [page, setPage] = useState(1);
+  const pageRef = useRef(page);
 
   const queryParams = {
     isDeleted: folderId === "Trash" ? "true" : "false",
     isArchived: folderId === "Archived" ? "true" : "false",
     isFavorite: folderId === "Favorites" ? "true" : "false",
+  };
+
+  const isSpecialFolder = () => {
+    return (
+      folderId === "Trash" ||
+      folderId === "Favorites" ||
+      folderId === "Archived"
+    );
   };
 
   const getNotesByFolderId = async () => {
@@ -32,11 +44,8 @@ export const Notes = ({ addNoteClicked }: NotesComponentProps) => {
       total: number;
       folderName: string;
     }>(
-      folderId &&
-        folderId !== "Trash" &&
-        folderId !== "Archived" &&
-        folderId !== "Favorites"
-        ? `/note?folderId=${folderId}`
+      folderId && !isSpecialFolder()
+        ? `/note?folderId=${folderId}&page=${page}`
         : `/note/recent?isDeleted=${queryParams.isDeleted}&isArchived=${queryParams.isArchived}&isFavorite=${queryParams.isFavorite}`
     );
   };
@@ -48,19 +57,15 @@ export const Notes = ({ addNoteClicked }: NotesComponentProps) => {
   });
 
   useEffect(() => {
-    if (addNoteClicked || isNoteUpdated) {
+    if (addNoteClicked || isNoteUpdated || page != pageRef.current) {
+      pageRef.current = page;
       refetch();
     } else {
       setFolderTitle(
-        folderId &&
-          (folderId === "Trash" ||
-            folderId === "Archived" ||
-            folderId === "Favorites")
-          ? folderId
-          : data?.data.folderName ?? ""
+        folderId && isSpecialFolder() ? folderId : data?.data.folderName ?? ""
       );
     }
-  }, [addNoteClicked, isNoteUpdated, data]);
+  }, [addNoteClicked, isNoteUpdated, data, page]);
 
   const updateFolder = async () => {
     setUpdateFolder(false);
@@ -84,7 +89,7 @@ export const Notes = ({ addNoteClicked }: NotesComponentProps) => {
   };
 
   return (
-    <div className="bg-gray-700 w-[20%] h-full px-4 py-4 overflow-y-scroll">
+    <div className="bg-gray-700 w-[20%] h-full px-4 py-4 flex flex-col justify-around">
       <div className="flex justify-between items-center text-white">
         {editFolderClicked ? (
           <input
@@ -102,7 +107,7 @@ export const Notes = ({ addNoteClicked }: NotesComponentProps) => {
             className="border-1 border-white/60 px-2 py-1"
           />
         ) : (
-          <h1 className="text-white text-xl font-medium px-2 py-1 grow">
+          <h1 className="text-white text-xl font-medium px-2 py-1 grow truncate">
             {folderTitle}
           </h1>
         )}
@@ -118,7 +123,10 @@ export const Notes = ({ addNoteClicked }: NotesComponentProps) => {
             </div>
           )}
       </div>
-      <div className="flex flex-col px-2 py-2 gap-y-4">
+      <div
+        style={{ maxHeight: "calc((7 * 7rem) + (6 * 0.75rem))" }}
+        className="flex flex-col px-2 py-2 gap-y-3 overflow-y-scroll grow"
+      >
         {data?.data.data.map((item) => {
           return (
             <NoteDiv
@@ -128,16 +136,41 @@ export const Notes = ({ addNoteClicked }: NotesComponentProps) => {
               preview={item.preview ?? ""}
               createdAt={item.createdAt}
               folderId={
-                folderId === "Trash" ||
-                folderId === "Archived" ||
-                folderId === "Favorites"
-                  ? folderId
-                  : item.folderId ?? ""
+                isSpecialFolder() ? folderId ?? "" : item.folderId ?? ""
               }
             />
           );
         })}
       </div>
+      {!isSpecialFolder() && !(data?.data.folderName === "Recent Notes") && (
+        <div className="flex justify-between px-2 py-1">
+          <div
+            onClick={() => {
+              if (page !== 1) {
+                setPage((prev) => prev - 1);
+              }
+            }}
+            className={`${page === 1 ? "text-white/60" : "text-white"}`}
+          >
+            <ChevronLeft size="lg" />
+          </div>
+          <span className="text-white">{page}</span>
+          <div
+            onClick={() => {
+              if ((data?.data.total ?? 1) / (8 * page) > 1) {
+                setPage((prev) => prev + 1);
+              }
+            }}
+            className={`${
+              (data?.data.total ?? 1) / (10 * page) > 1
+                ? "text-white"
+                : "text-white/60"
+            }`}
+          >
+            <ChevronRight size="lg" />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
