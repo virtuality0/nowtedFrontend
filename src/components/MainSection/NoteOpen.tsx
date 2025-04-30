@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { note } from "../../types/note";
 import calendarIcon from "../../assets/icons/Calender-Icon.svg";
 import useAxiosApi from "../../utils/axiosClient";
-import { useDebouce } from "../../hooks/useDebounce";
+import useDebounce from "../../hooks/useDebounce";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { NoteOptions } from "./NoteOptions";
@@ -25,7 +25,6 @@ export const NoteOpen = ({ setNoteState }: NoteOpenComponetProps) => {
     createdAt: "",
   });
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const axiosApi = useAxiosApi();
   const params = useParams();
   const noteId = params.noteId;
@@ -34,65 +33,57 @@ export const NoteOpen = ({ setNoteState }: NoteOpenComponetProps) => {
 
   const fetchNote = async () => {
     try {
-      if (folderId === "Trash") {
-        setNoteState("deleted");
-        return;
+      if (noteId) {
+        if (folderId === "Trash") {
+          setNoteState("deleted");
+          return;
+        }
+        const response = await axiosApi.get<{ data: note }>(`/note/${noteId}`);
+        return response.data;
       }
-      const response = await axiosApi.get<{ data: note }>(`/note/${noteId}`);
-      return response.data;
     } catch (err) {
       setNoteState("initial");
     }
   };
 
-  const { data, isSuccess } = useQuery({
+  const { data } = useQuery({
     queryKey: ["note", noteId],
     queryFn: fetchNote,
     refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
-    if (isSuccess && data) {
-      setIsSyncing(true); // this is used so that updateNote isn't called before the noteData is actually set
+    if (data) {
       setNoteData({
         ...noteData,
         content: data.data.content,
         title: data.data.title,
         createdAt: new Date(data.data.createdAt).toLocaleDateString(),
       });
-      setTimeout(() => {
-        setIsSyncing(false);
-      }, 800);
     }
-  }, [data, isSuccess]);
+  }, [data]);
 
-  // set the initial data of debounced values only after the intial fetch
-  const noteContentDebouncedValue = useDebouce(noteData.content, 700);
-  const noteTitleDebouncedValue = useDebouce(noteData.title, 700);
+  const udpateNote = useCallback(
+    async (deleteNote: boolean = false) => {
+      await axiosApi.patch<{ msg: string }>(`/note/${noteId}`, {
+        title: noteData.title,
+        content: noteData.content,
+        modifiedAt: new Date().toISOString(),
+        isDeleted: deleteNote,
+      });
+      setUpdateNote(true);
+      setTimeout(() => {
+        setUpdateNote(false);
+      }, 500);
+    },
+    [noteData, noteId, setUpdateNote]
+  );
 
-  const udpateNote = async (deleteNote: boolean) => {
-    setUpdateNote(false);
-    await axiosApi.patch<{ msg: string }>(`/note/${noteId}`, {
-      title: noteTitleDebouncedValue,
-      content: noteContentDebouncedValue,
-      modifiedAt: new Date().toISOString(),
-      isDeleted: deleteNote,
-    });
-    setUpdateNote(true);
-  };
+  const updateNoteDebouncedFunction = useDebounce(udpateNote, 700);
 
   const onBlurHandler = () => {
     setIsEditing(false);
   };
-
-  useEffect(() => {
-    if (
-      (!isSyncing && noteContentDebouncedValue !== data?.data.content) ||
-      noteTitleDebouncedValue !== data?.data.title
-    ) {
-      udpateNote(false);
-    }
-  }, [noteContentDebouncedValue, noteTitleDebouncedValue]);
 
   return (
     <div className="flex flex-col grow">
@@ -109,10 +100,11 @@ export const NoteOpen = ({ setNoteState }: NoteOpenComponetProps) => {
               onBlur={onBlurHandler}
               value={noteData.title}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setNoteData({
-                  ...noteData,
+                setNoteData((prev) => ({
+                  ...prev,
                   title: e.target.value,
-                });
+                }));
+                updateNoteDebouncedFunction();
               }}
             />
           ) : (
@@ -140,10 +132,11 @@ export const NoteOpen = ({ setNoteState }: NoteOpenComponetProps) => {
         <textarea
           value={noteData.content}
           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-            setNoteData({
-              ...noteData,
+            setNoteData((prev) => ({
+              ...prev,
               content: e.target.value,
-            });
+            }));
+            updateNoteDebouncedFunction();
           }}
           className="size-full text-white/60 border-1 border-white/60 rounded-md px-2 py-1"
           placeholder="Write your note here."

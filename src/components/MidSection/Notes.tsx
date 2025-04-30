@@ -57,7 +57,7 @@ export const Notes = ({ addNoteClicked }: NotesComponentProps) => {
   });
 
   useEffect(() => {
-    if (addNoteClicked || isNoteUpdated || page != pageRef.current) {
+    if (page != pageRef.current) {
       pageRef.current = page;
       refetch();
     } else {
@@ -65,7 +65,13 @@ export const Notes = ({ addNoteClicked }: NotesComponentProps) => {
         folderId && isSpecialFolder() ? folderId : data?.data.folderName ?? ""
       );
     }
-  }, [addNoteClicked, isNoteUpdated, data, page]);
+  }, [data, page]);
+
+  useEffect(() => {
+    if (addNoteClicked || isNoteUpdated) {
+      refetch();
+    }
+  }, [addNoteClicked, isNoteUpdated]);
 
   const updateFolder = async () => {
     setUpdateFolder(false);
