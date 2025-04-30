@@ -6,7 +6,7 @@ const useAxiosApi = () => {
   const navigate = useNavigate();
 
   const axiosApi = axios.create({
-    baseURL: "http://localhost:3001/api/v1/",
+    baseURL: process.env.BACKEND_URL ?? "",
     timeout: 2000,
     withCredentials: true,
   });
