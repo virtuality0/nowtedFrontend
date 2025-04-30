@@ -6,7 +6,7 @@ const useAxiosApi = () => {
   const navigate = useNavigate();
 
   const axiosApi = axios.create({
-    baseURL: process.env.BACKEND_URL ?? "",
+    baseURL: "https://nowtedbackend.onrender.com/api/v1/",
     timeout: 2000,
     withCredentials: true,
   });
