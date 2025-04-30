@@ -9,7 +9,7 @@ import useAxiosApi from "../../utils/axiosClient";
 import { ExtraFolders } from "./ExtraFolders";
 import searchIcon from "../../assets/icons/Search-Icon.svg";
 import { useEffect, useState } from "react";
-import { useDebouce } from "../../hooks/useDebounce";
+import { useDebouceValue } from "../../hooks/useDebounceValue";
 import { note } from "../../types/note";
 import noteIcon from "../../assets/icons/Page-Icon.svg";
 
@@ -46,10 +46,10 @@ export const Sidebar = ({
     toast("Note created");
     setTimeout(() => {
       setAddNoteClicked(false);
-    }, 1000);
+    }, 500);
   };
 
-  const debouncedValue = useDebouce(searchParam, 700);
+  const debouncedValue = useDebouceValue(searchParam, 700);
   const getSearchResult = async () => {
     const response = await axiosApi.get<{
       data: note[];
