@@ -4,12 +4,17 @@ import trashIcon from "../../assets/icons/Trash-Icon.svg";
 import favoriteIcon from "../../assets/icons/Favourites-Icon.svg";
 import archiveIcon from "../../assets/icons/Archive-Icon.svg";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 interface NoteOptionsComponentProps {
   setNoteState: React.Dispatch<
     React.SetStateAction<"initial" | "opened" | "deleted">
   >;
-  updateNote: (deleteNote: boolean) => Promise<void>;
+  updateNote: (
+    deleteNote: boolean,
+    makeNoteFavorite: boolean,
+    archiveNote: boolean
+  ) => Promise<void>;
   folderId: string;
 }
 
@@ -20,10 +25,23 @@ export const NoteOptions = ({
 }: NoteOptionsComponentProps) => {
   const [noteOptionsOpen, setNoteOptionsOpen] = useState<boolean>(false);
   const navigate = useNavigate();
+
   const onClickTrashHandler = async () => {
-    await updateNote(true);
+    await updateNote(true, false, false);
     setNoteState("deleted");
     navigate(`/folder/${folderId}`);
+  };
+
+  const onClickFavoriteHandler = async () => {
+    await updateNote(false, true, false);
+    setNoteOptionsOpen(false);
+    toast("Note added to favorites.");
+  };
+
+  const onClickArchiveHandler = async () => {
+    await updateNote(false, false, true);
+    setNoteOptionsOpen(false);
+    toast("Note archived.");
   };
 
   return (
@@ -45,11 +63,17 @@ export const NoteOptions = ({
             <img src={trashIcon} alt="trash" />
             <span className="text-white/60 text-sm">Trash</span>
           </li>
-          <li className="list-none flex gap-x-4 px-2 py-1 cursor-pointer">
+          <li
+            onClick={onClickFavoriteHandler}
+            className="list-none flex gap-x-4 px-2 py-1 cursor-pointer"
+          >
             <img src={favoriteIcon} alt="favorite" />
             <span className="text-white/60 text-sm">Favorite</span>
           </li>
-          <li className="list-none flex gap-x-4 px-2 py-1 cursor-pointer">
+          <li
+            onClick={onClickArchiveHandler}
+            className="list-none flex gap-x-4 px-2 py-1 cursor-pointer"
+          >
             <img src={archiveIcon} alt="archive" />
             <span className="text-white/60 text-sm">Archive</span>
           </li>

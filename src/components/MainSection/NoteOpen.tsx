@@ -64,12 +64,18 @@ export const NoteOpen = ({ setNoteState }: NoteOpenComponetProps) => {
   }, [data]);
 
   const udpateNote = useCallback(
-    async (deleteNote: boolean = false) => {
+    async (
+      deleteNote: boolean = false,
+      makeNoteFavorite: boolean = false,
+      archiveNote: boolean = false
+    ) => {
       await axiosApi.patch<{ msg: string }>(`/note/${noteId}`, {
         title: noteData.title,
         content: noteData.content,
         modifiedAt: new Date().toISOString(),
         isDeleted: deleteNote,
+        isFavorite: makeNoteFavorite,
+        isArchived: archiveNote,
       });
       setUpdateNote(true);
       setTimeout(() => {

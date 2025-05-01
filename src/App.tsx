@@ -15,6 +15,7 @@ function App() {
         position="top-right"
         pauseOnHover={false}
         theme="dark"
+        limit={1}
       />
       <BrowserRouter>
         <Routes>
