@@ -9,4 +9,7 @@ export type note = {
   folderId: string;
   preview?: string;
   folder?: folder;
+  isDeleted: boolean;
+  isFavorite: boolean;
+  isArchived: boolean;
 };

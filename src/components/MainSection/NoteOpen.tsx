@@ -46,7 +46,7 @@ export const NoteOpen = ({ setNoteState }: NoteOpenComponetProps) => {
     }
   };
 
-  const { data } = useQuery({
+  const { data, refetch } = useQuery({
     queryKey: ["note", noteId],
     queryFn: fetchNote,
     refetchOnWindowFocus: false,
@@ -127,6 +127,10 @@ export const NoteOpen = ({ setNoteState }: NoteOpenComponetProps) => {
             setNoteState={setNoteState}
             updateNote={udpateNote}
             folderId={folderId ?? ""}
+            isDeleted={data?.data.isDeleted ?? false}
+            isArchived={data?.data.isArchived ?? false}
+            isFavorite={data?.data.isFavorite ?? false}
+            refetch={refetch}
           />
         </div>
         <div className="flex gap-x-2 px-2 py-2">
